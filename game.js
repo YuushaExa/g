@@ -1,4 +1,4 @@
-import { renderStartScreen, renderEndButton, renderEndScreen, clearUI } from './ui.js';
+import { initUI, showStartScreen, showGameScreen, showEndScreen } from './ui.js';
 
 // Game configuration
 const config = {
@@ -8,20 +8,24 @@ const config = {
     playerColor: '#FF0000',  // Red
     floorColor: '#000000',   // Black (walkable)
     wallColor: '#FFFFFF',    // White (blocked)
+    coinColor: '#FFFF00',    // Yellow
+    maxCoins: 3,
     gameState: 'startScreen' // Possible states: 'startScreen', 'playing', 'ended'
 };
 
 // Game state
 const state = {
     player: { x: 1, y: 1 },
-    map: []
+    map: [],
+    coins: [],
+    collectedCoins: 0
 };
 
 // Initialize canvas
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = config.cols * config.cellSize;  // 20 × 32 = 640
-canvas.height = config.rows * config.cellSize; // 15 × 32 = 480
+canvas.width = config.cols * config.cellSize;
+canvas.height = config.rows * config.cellSize;
 
 // Generate a simple map
 function generateMap() {
@@ -43,6 +47,24 @@ function generateMap() {
         map.push(row);
     }
     return map;
+}
+
+// Generate coins randomly
+function generateCoins() {
+    const coins = [];
+    for (let i = 0; i < config.maxCoins; i++) {
+        let x, y;
+        do {
+            x = Math.floor(Math.random() * (config.cols - 2)) + 1;
+            y = Math.floor(Math.random() * (config.rows - 2)) + 1;
+        } while (
+            state.map[y][x] !== config.floorColor ||  // Don't spawn in walls
+            coins.some(coin => coin.x === x && coin.y === y) ||  // Don't overlap coins
+            (x === state.player.x && y === state.player.y)  // Don't spawn on player
+        );
+        coins.push({ x, y });
+    }
+    return coins;
 }
 
 // Draw the game
@@ -72,6 +94,20 @@ function render() {
             }
         }
         
+        // Draw coins
+        ctx.fillStyle = config.coinColor;
+        state.coins.forEach(coin => {
+            ctx.beginPath();
+            ctx.arc(
+                (coin.x + 0.5) * config.cellSize,
+                (coin.y + 0.5) * config.cellSize,
+                config.cellSize / 3,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        });
+        
         // Draw player
         ctx.fillStyle = config.playerColor;
         ctx.fillRect(
@@ -93,6 +129,13 @@ function movePlayer(dx, dy) {
         newY >= 0 && newY < config.rows && 
         state.map[newY][newX] !== config.wallColor) {
         
+        // Check for coin collection
+        const coinIndex = state.coins.findIndex(c => c.x === newX && c.y === newY);
+        if (coinIndex !== -1) {
+            state.coins.splice(coinIndex, 1);
+            state.collectedCoins++;
+        }
+        
         state.player.x = newX;
         state.player.y = newY;
     }
@@ -102,16 +145,27 @@ function movePlayer(dx, dy) {
 function startGame() {
     config.gameState = 'playing';
     state.map = generateMap();
-    clearUI();
+    state.coins = generateCoins();
+    state.collectedCoins = 0;
+    showGameScreen();
     render();
-    renderEndButton(endGame); // Add the End button when game starts
 }
 
 // End the game
 function endGame() {
     config.gameState = 'ended';
-    clearUI();
-    renderEndScreen();
+    showEndScreen(state.collectedCoins, config.maxCoins);
+}
+
+// Restart the game
+function restartGame() {
+    state.player = { x: 1, y: 1 };
+    state.map = generateMap();
+    state.coins = generateCoins();
+    state.collectedCoins = 0;
+    config.gameState = 'playing';
+    showGameScreen();
+    render();
 }
 
 // Keyboard controls
@@ -129,8 +183,9 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize and start game
 function init() {
-    renderStartScreen(startGame);
-    render(); // Initial render (will show the start screen overlay)
+    initUI(startGame, endGame, restartGame);
+    showStartScreen();
+    render();
 }
 
 init();
