@@ -1,6 +1,4 @@
 // UI Container setup
-document.addEventListener('DOMContentLoaded', () => {
-
 const uiContainer = document.getElementById('uiContainer');
 
 // Render Start Screen
@@ -45,4 +43,3 @@ export function clearUI() {
     uiContainer.innerHTML = '';
 }
 
-       });
