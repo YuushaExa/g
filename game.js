@@ -1,4 +1,4 @@
-import { renderStartScreen, renderEndButton, renderEndScreen, clearUI } from './ui.js';
+import { ui } from './ui.js';
 
 // Game configuration
 const config = {
@@ -148,16 +148,16 @@ function startGame() {
     state.map = generateMap();
     state.coins = generateCoins();
     state.collectedCoins = 0;
-    clearUI();
+    ui.clearUI();
     render();
-    renderEndButton(endGame);
+    ui.renderEndButton(endGame);
 }
 
 // End the game
 function endGame() {
     config.gameState = 'ended';
     clearUI();
-    renderEndScreen(state.collectedCoins, config.maxCoins, restartGame);
+    ui.renderEndScreen(state.collectedCoins, config.maxCoins, restartGame);
 }
 
 // Restart the game
@@ -167,9 +167,9 @@ function restartGame() {
     state.coins = generateCoins();
     state.collectedCoins = 0;
     config.gameState = 'playing';
-    clearUI();
+    ui.clearUI();
     render();
-    renderEndButton(endGame);
+    ui.renderEndButton(endGame);
 }
 
 // Keyboard controls
@@ -199,7 +199,7 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize game
 function init() {
-    renderStartScreen(startGame);
+    ui.renderStartScreen(startGame);
     render();
 }
 
