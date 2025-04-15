@@ -82,8 +82,9 @@
     margin-bottom: 20px;
 }
 
+/* Add to your existing end-screen styles */
 .end-screen p {
-    color: white;
+    color: gold;
     font-size: 24px;
-    margin-bottom: 40px;
+    margin: 10px 0;
 }
