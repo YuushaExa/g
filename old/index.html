@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Grid Game</title>
+<style>
+    body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f0f0f0;
+    overflow: hidden;
+}
+
+.canvas-container {
+    position: relative;
+    display: inline-block;
+}
+
+#gameCanvas {
+    display: block;
+    background: #222;
+}
+</style>  
+    <link rel="stylesheet" href="ui.css">
+</head>
+<body>
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="640" height="480"></canvas>
+        <div id="uiContainer"></div>
+    </div>
+    <script src="ui.js" type="module"></script>
+    <script src="game.js" type="module"></script>
+</body>
+</html>
