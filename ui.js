@@ -24,18 +24,16 @@ export function renderEndButton(endGameCallback) {
 }
 
 // Render End Screen
-export function renderEndScreen() {
+export function renderEndScreen(collectedCoins, maxCoins, restartCallback) {
     uiContainer.innerHTML = `
         <div class="end-screen">
             <h1>GAME OVER</h1>
-            <p>Thanks for playing!</p>
+            <p>You collected ${collectedCoins}/${maxCoins} coins!</p>
             <button id="restartButton" class="game-button">PLAY AGAIN</button>
         </div>
     `;
     
-    document.getElementById('restartButton').addEventListener('click', () => {
-        window.location.reload();
-    });
+    document.getElementById('restartButton').addEventListener('click', restartCallback);
 }
 
 // Clear UI elements
