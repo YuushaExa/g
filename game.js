@@ -333,7 +333,7 @@ function enemyTurn() {
                 if (newX >= 1 && newX < config.cols - 1 &&
                     newY >= 1 && newY < config.rows - 1 &&
                     state.map[newY][newX] !== config.wallColor &&
-                    !state.enemies.some(e => e !== enemy && e.x === newX && e.y === newY && e.health > 0) {
+!state.enemies.some(e => e !== enemy && e.x === newX && e.y === newY && e.health > 0) {
                     
                     enemy.x = newX;
                     enemy.y = newY;
