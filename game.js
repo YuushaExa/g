@@ -1,4 +1,4 @@
-import { initUI, showStartScreen, showGameScreen, showEndScreen } from './ui.js';
+import { renderStartScreen, renderEndButton, renderEndScreen, clearUI } from './ui.js';
 
 // Game configuration
 const config = {
@@ -9,7 +9,7 @@ const config = {
     floorColor: '#000000',   // Black (walkable)
     wallColor: '#FFFFFF',    // White (blocked)
     coinColor: '#FFFF00',    // Yellow
-    maxCoins: 3,
+    maxCoins: 3,             // Number of coins to collect
     gameState: 'startScreen' // Possible states: 'startScreen', 'playing', 'ended'
 };
 
@@ -49,7 +49,7 @@ function generateMap() {
     return map;
 }
 
-// Generate coins randomly
+// Generate coins at random positions
 function generateCoins() {
     const coins = [];
     for (let i = 0; i < config.maxCoins; i++) {
@@ -58,9 +58,9 @@ function generateCoins() {
             x = Math.floor(Math.random() * (config.cols - 2)) + 1;
             y = Math.floor(Math.random() * (config.rows - 2)) + 1;
         } while (
-            state.map[y][x] !== config.floorColor ||  // Don't spawn in walls
-            coins.some(coin => coin.x === x && coin.y === y) ||  // Don't overlap coins
-            (x === state.player.x && y === state.player.y)  // Don't spawn on player
+            state.map[y][x] !== config.floorColor || // Don't spawn in walls
+            coins.some(coin => coin.x === x && coin.y === y) || // Don't overlap coins
+            (x === state.player.x && y === state.player.y) // Don't spawn on player
         );
         coins.push({ x, y });
     }
@@ -119,7 +119,7 @@ function render() {
     }
 }
 
-// Handle player movement
+// Handle player movement and coin collection
 function movePlayer(dx, dy) {
     const newX = state.player.x + dx;
     const newY = state.player.y + dy;
@@ -138,6 +138,7 @@ function movePlayer(dx, dy) {
         
         state.player.x = newX;
         state.player.y = newY;
+        render();
     }
 }
 
@@ -147,14 +148,15 @@ function startGame() {
     state.map = generateMap();
     state.coins = generateCoins();
     state.collectedCoins = 0;
-    showGameScreen();
     render();
+    renderEndButton(endGame);
 }
 
 // End the game
 function endGame() {
     config.gameState = 'ended';
-    showEndScreen(state.collectedCoins, config.maxCoins);
+    clearUI();
+    renderEndScreen(state.collectedCoins, config.maxCoins, restartGame);
 }
 
 // Restart the game
@@ -164,8 +166,9 @@ function restartGame() {
     state.coins = generateCoins();
     state.collectedCoins = 0;
     config.gameState = 'playing';
-    showGameScreen();
+    clearUI();
     render();
+    renderEndButton(endGame);
 }
 
 // Keyboard controls
@@ -177,14 +180,12 @@ document.addEventListener('keydown', (e) => {
             case 's': movePlayer(0, 1); break;
             case 'd': movePlayer(1, 0); break;
         }
-        render();
     }
 });
 
-// Initialize and start game
+// Initialize game
 function init() {
-    initUI(startGame, endGame, restartGame);
-    showStartScreen();
+    renderStartScreen(startGame);
     render();
 }
 
