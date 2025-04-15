@@ -18,11 +18,11 @@ export function renderStartScreen(startGameCallback) {
 
 // Render End Button
 export function renderEndButton(endGameCallback) {
-    const endButton = document.createElement('button');
-    endButton.id = 'endButton';
-    endButton.textContent = 'END';
-    uiContainer.appendChild(endButton);
-    endButton.addEventListener('click', endGameCallback);
+    uiContainer.innerHTML += `
+        <button id="endButton" class="end-button">END</button>
+    `;
+    
+    document.getElementById('endButton').addEventListener('click', endGameCallback);
 }
 
 // Render End Screen
