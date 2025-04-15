@@ -1,7 +1,4 @@
 // UI Container setup
-const uiContainer = document.createElement('div');
-uiContainer.id = 'ui-container';
-document.body.appendChild(uiContainer);
 
 // Render Start Screen
 export function renderStartScreen(startGameCallback) {
