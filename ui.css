@@ -1,0 +1,89 @@
+/* UI Container */
+#ui-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Start Screen */
+.start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.start-screen h1 {
+    color: white;
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.start-screen p {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 40px;
+}
+
+/* Game Button Styles */
+.game-button {
+    background: #FF0000;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* End Button */
+#endButton {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #FF0000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    pointer-events: auto;
+    font-size: 16px;
+}
+
+/* End Screen */
+.end-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+.end-screen h1 {
+    color: white;
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.end-screen p {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 40px;
+}
