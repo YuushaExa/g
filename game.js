@@ -102,6 +102,7 @@ function movePlayer(dx, dy) {
 function startGame() {
     config.gameState = 'playing';
     state.map = generateMap();
+    clearUI();
     render();
     renderEndButton(endGame); // Add the End button when game starts
 }
