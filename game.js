@@ -176,10 +176,23 @@ function restartGame() {
 document.addEventListener('keydown', (e) => {
     if (config.gameState === 'playing') {
         switch (e.key.toLowerCase()) {
-            case 'w': movePlayer(0, -1); break;
-            case 'a': movePlayer(-1, 0); break;
-            case 's': movePlayer(0, 1); break;
-            case 'd': movePlayer(1, 0); break;
+            // WASD controls
+            case 'w':
+            case 'arrowup':
+                movePlayer(0, -1); // Up
+                break;
+            case 'a':
+            case 'arrowleft':
+                movePlayer(-1, 0); // Left
+                break;
+            case 's':
+            case 'arrowdown':
+                movePlayer(0, 1); // Down
+                break;
+            case 'd':
+            case 'arrowright':
+                movePlayer(1, 0); // Right
+                break;
         }
     }
 });
