@@ -104,17 +104,66 @@ export const ui = {
     },
 
     // Render End Screen
-    renderEndScreen: function(collectedCoins, maxCoins, restartCallback) {
-        uiContainer.innerHTML = `
-            <div class="end-screen">
-                <h1>GAME OVER</h1>
-                <p>You collected ${collectedCoins}/${maxCoins} coins!</p>
-                <button id="restartButton" class="game-button">PLAY AGAIN</button>
+// Add to ui.js
+showCombatScreen: function(player, enemy, attackCallback, fleeCallback) {
+    uiContainer.innerHTML += `
+        <div class="combat-screen">
+            <div class="combat-info">
+                <h2>COMBAT!</h2>
+                <div class="combatants">
+                    <div class="combatant player">
+                        <h3>${player.name}</h3>
+                        <p>HP: ${Math.floor(player.health)}/${player.maxHealth}</p>
+                        <p>ATK: ${player.attack} DEF: ${player.defense}</p>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="combatant enemy">
+                        <h3>${enemy.name}</h3>
+                        <p>HP: ${Math.floor(enemy.health)}/${enemy.maxHealth}</p>
+                        <p>ATK: ${enemy.attack} DEF: ${enemy.defense}</p>
+                    </div>
+                </div>
+                <div class="combat-message"></div>
+                <div class="combat-actions">
+                    <button id="attackButton" class="game-button">ATTACK</button>
+                    <button id="fleeButton" class="game-button">FLEE</button>
+                </div>
             </div>
-        `;
-        
-        document.getElementById('restartButton').addEventListener('click', restartCallback);
-    },
+        </div>
+    `;
+    
+    document.getElementById('attackButton').addEventListener('click', attackCallback);
+    document.getElementById('fleeButton').addEventListener('click', fleeCallback);
+},
+
+showCombatMessage: function(message) {
+    const messageEl = document.querySelector('.combat-message');
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
+},
+
+clearCombatScreen: function() {
+    const combatScreen = document.querySelector('.combat-screen');
+    if (combatScreen) {
+        combatScreen.remove();
+    }
+},
+
+// Update renderEndScreen to include victory parameter
+renderEndScreen: function(gold, xp, survivors, totalParty, victory, restartCallback) {
+    uiContainer.innerHTML = `
+        <div class="end-screen">
+            <h1>${victory ? 'VICTORY!' : 'GAME OVER'}</h1>
+            <p>Survivors: ${survivors}/${totalParty}</p>
+            <p>Gold Collected: ${gold}</p>
+            <p>Experience Gained: ${xp}</p>
+            <button id="restartButton" class="game-button">PLAY AGAIN</button>
+        </div>
+    `;
+    
+    document.getElementById('restartButton').addEventListener('click', restartCallback);
+}
 
     // Clear UI elements
     clearUI: function() {
