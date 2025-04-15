@@ -2,7 +2,7 @@
 const uiContainer = document.getElementById('uiContainer');
 export const UI = {
 // Render Start Screen
-export function renderStartScreen(startGameCallback) {
+renderStartScreen(startGameCallback) {
     uiContainer.innerHTML = `
         <div class="start-screen">
             <h1>COLOR GRID GAME</h1>
@@ -15,7 +15,7 @@ export function renderStartScreen(startGameCallback) {
 }
 
 // Render End Button
-export function renderEndButton(endGameCallback) {
+renderEndButton(endGameCallback) {
     uiContainer.innerHTML += `
         <button id="endButton" class="end-button">END</button>
     `;
@@ -24,7 +24,7 @@ export function renderEndButton(endGameCallback) {
 }
 
 // Render End Screen
-export function renderEndScreen(collectedCoins, maxCoins, restartCallback) {
+renderEndScreen(collectedCoins, maxCoins, restartCallback) {
     uiContainer.innerHTML = `
         <div class="end-screen">
             <h1>GAME OVER</h1>
@@ -37,7 +37,7 @@ export function renderEndScreen(collectedCoins, maxCoins, restartCallback) {
 }
 
 // Clear UI elements
-export function clearUI() {
+clearUI() {
     uiContainer.innerHTML = '';
 }
 
