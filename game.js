@@ -156,7 +156,7 @@ function startGame() {
 // End the game
 function endGame() {
     config.gameState = 'ended';
-    clearUI();
+    ui.clearUI();
     ui.renderEndScreen(state.collectedCoins, config.maxCoins, restartGame);
 }
 
