@@ -1,6 +1,6 @@
 // UI Container setup
 const uiContainer = document.getElementById('uiContainer');
-
+export const UI = {
 // Render Start Screen
 export function renderStartScreen(startGameCallback) {
     uiContainer.innerHTML = `
@@ -41,3 +41,4 @@ export function clearUI() {
     uiContainer.innerHTML = '';
 }
 
+};
