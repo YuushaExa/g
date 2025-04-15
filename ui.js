@@ -163,7 +163,7 @@ renderEndScreen: function(gold, xp, survivors, totalParty, victory, restartCallb
     `;
     
     document.getElementById('restartButton').addEventListener('click', restartCallback);
-}
+},
 
     // Clear UI elements
     clearUI: function() {
