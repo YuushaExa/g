@@ -148,6 +148,7 @@ function startGame() {
     state.map = generateMap();
     state.coins = generateCoins();
     state.collectedCoins = 0;
+    clearUI();
     render();
     renderEndButton(endGame);
 }
