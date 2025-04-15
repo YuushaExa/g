@@ -1,4 +1,5 @@
 // UI Container setup
+const uiContainer = document.getElementById('uiContainer');
 
 // Render Start Screen
 export function renderStartScreen(startGameCallback) {
