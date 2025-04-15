@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f0f0f0;
+    overflow: hidden;
+}
+
+.canvas-container {
+    position: relative;
+    display: inline-block;
+}
+
+#gameCanvas {
+    display: block;
+    background: #222;
+}
