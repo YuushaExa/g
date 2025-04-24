@@ -1,0 +1,17 @@
+{
+    "characters": [
+        {
+            "id": "warrior",
+            "name": "Warrior",
+            "health": 100,
+            "attack": 20
+        },
+        {
+            "id": "mage",
+            "name": "Mage",
+            "health": 70,
+            "attack": 35
+        }
+    ],
+    "startingScene": "startScreen"
+}
