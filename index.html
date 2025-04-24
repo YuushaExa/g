@@ -1,36 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Color Grid Game</title>
-<style>
-    body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f0f0f0;
-    overflow: hidden;
-}
-
-.canvas-container {
-    position: relative;
-    display: inline-block;
-}
-
-#gameCanvas {
-    display: block;
-    background: #222;
-}
-</style>  
-    <link rel="stylesheet" href="ui.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Game Engine</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="canvas-container">
-        <canvas id="gameCanvas" width="640" height="480"></canvas>
-        <div id="uiContainer"></div>
-    </div>
-    <script src="ui.js" type="module"></script>
+    <div id="uiContainer"></div>
     <script src="game.js" type="module"></script>
 </body>
 </html>
