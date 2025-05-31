@@ -8,6 +8,8 @@ const config = {
     maxCoins: 3,
     gameState: 'startScreen',
     moveRange: 3,
+    playerAttack: 3,
+    wallHP: 5,
     // Image paths
     playerImage: 'https://raw.githubusercontent.com/YuushaExa/g/refs/heads/main/assets/map/assets_task_01jwk8dx5eenf95wcbx76bcrdc_1748698089_img_0.webp',
     floorImage: 'https://raw.githubusercontent.com/YuushaExa/g/refs/heads/main/assets/map/20250531_1625_Retro%20Grass%20Texture_simple_compose_01jwk89w4tfkrrdfke0frvddyr.png',
@@ -26,11 +28,12 @@ const assets = {
 // Game state
 const state = {
     player: { x: 1, y: 1 },
-    map: [],
+    map: [], // Now stores objects { type: 'wall'|'floor', hp?: number }
     coins: [],
     collectedCoins: 0,
     selectedUnit: null,
-    validMoves: []
+    validMoves: [],
+    attackTargets: []
 };
 
 // Initialize canvas
@@ -82,13 +85,13 @@ function generateMap() {
         for (let x = 0; x < config.cols; x++) {
             // Border walls
             if (x === 0 || y === 0 || x === config.cols - 1 || y === config.rows - 1) {
-                row.push('wall');
+                row.push({ type: 'wall', hp: config.wallHP });
             } 
             // Random inner walls (20% chance)
             else if (Math.random() < 0.2 && !(x === state.player.x && y === state.player.y)) {
-                row.push('wall');
+                row.push({ type: 'wall', hp: config.wallHP });
             } else {
-                row.push('floor');
+                row.push({ type: 'floor' });
             }
         }
         map.push(row);
@@ -105,7 +108,7 @@ function generateCoins() {
             x = Math.floor(Math.random() * (config.cols - 2)) + 1;
             y = Math.floor(Math.random() * (config.rows - 2)) + 1;
         } while (
-            state.map[y][x] !== 'floor' || // Don't spawn in walls
+            state.map[y][x].type !== 'floor' || // Don't spawn in walls
             coins.some(coin => coin.x === x && coin.y === y) || // Don't overlap coins
             (x === state.player.x && y === state.player.y) // Don't spawn on player
         );
@@ -114,9 +117,10 @@ function generateCoins() {
     return coins;
 }
 
-// Calculate valid moves within range
-function calculateValidMoves(x, y, range) {
+// Calculate valid moves and attack targets
+function calculateMovementOptions(x, y, range) {
     const moves = [];
+    const attacks = [];
     const visited = new Set();
     const queue = [{ x, y, distance: 0 }];
     
@@ -127,16 +131,8 @@ function calculateValidMoves(x, y, range) {
         if (visited.has(key)) continue;
         visited.add(key);
         
+        // Check if current position is adjacent to a wall (attack target)
         if (current.distance > 0 && current.distance <= range) {
-            // Only add if it's a floor tile and not occupied by the player
-            if (state.map[current.y][current.x] === 'floor' && 
-                !(current.x === state.player.x && current.y === state.player.y)) {
-                moves.push({ x: current.x, y: current.y });
-            }
-        }
-        
-        if (current.distance < range) {
-            // Check all four directions
             const directions = [
                 { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
                 { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
@@ -146,17 +142,45 @@ function calculateValidMoves(x, y, range) {
                 const nx = current.x + dir.dx;
                 const ny = current.y + dir.dy;
                 
-                // Check boundaries and walls
+                // Check boundaries
+                if (nx >= 0 && nx < config.cols && ny >= 0 && ny < config.rows) {
+                    const cell = state.map[ny][nx];
+                    if (cell.type === 'wall' && cell.hp > 0) {
+                        attacks.push({ x: nx, y: ny });
+                        break; // Only need to find one adjacent wall
+                    }
+                }
+            }
+        }
+        
+        if (current.distance <= range) {
+            // Only add if it's a floor tile and not occupied by the player
+            if (state.map[current.y][current.x].type === 'floor' && 
+                !(current.x === state.player.x && current.y === state.player.y)) {
+                moves.push({ x: current.x, y: current.y });
+            }
+            
+            // Continue exploring neighbors
+            const directions = [
+                { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+                { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+            ];
+            
+            for (const dir of directions) {
+                const nx = current.x + dir.dx;
+                const ny = current.y + dir.dy;
+                
+                // Check boundaries and walls (can't move through walls)
                 if (nx >= 0 && nx < config.cols && 
                     ny >= 0 && ny < config.rows && 
-                    state.map[ny][nx] !== 'wall') {
+                    state.map[ny][nx].type !== 'wall') {
                     queue.push({ x: nx, y: ny, distance: current.distance + 1 });
                 }
             }
         }
     }
     
-    return moves;
+    return { moves, attacks };
 }
 
 // Draw the game
@@ -167,8 +191,8 @@ function render() {
         // Draw map
         for (let y = 0; y < config.rows; y++) {
             for (let x = 0; x < config.cols; x++) {
-                const cellType = state.map[y][x];
-                const img = cellType === 'wall' ? assets.wall : assets.floor;
+                const cell = state.map[y][x];
+                const img = cell.type === 'wall' ? assets.wall : assets.floor;
                 
                 if (img && img.complete) {
                     ctx.drawImage(
@@ -180,12 +204,24 @@ function render() {
                     );
                 } else {
                     // Fallback: draw colored rectangle if image not loaded
-                    ctx.fillStyle = cellType === 'wall' ? '#FFFFFF' : '#000000';
+                    ctx.fillStyle = cell.type === 'wall' ? '#FFFFFF' : '#000000';
                     ctx.fillRect(
                         x * config.cellSize,
                         y * config.cellSize,
                         config.cellSize,
                         config.cellSize
+                    );
+                }
+                
+                // Draw wall HP if applicable
+                if (cell.type === 'wall' && cell.hp > 0) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(
+                        cell.hp.toString(),
+                        x * config.cellSize + config.cellSize / 2,
+                        y * config.cellSize + config.cellSize / 2
                     );
                 }
                 
@@ -201,6 +237,17 @@ function render() {
                 // Highlight valid moves
                 if (state.validMoves.some(move => move.x === x && move.y === y)) {
                     ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                    ctx.fillRect(
+                        x * config.cellSize,
+                        y * config.cellSize,
+                        config.cellSize,
+                        config.cellSize
+                    );
+                }
+                
+                // Highlight attack targets
+                if (state.attackTargets.some(target => target.x === x && target.y === y)) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
                     ctx.fillRect(
                         x * config.cellSize,
                         y * config.cellSize,
@@ -298,9 +345,88 @@ function movePlayer(newX, newY) {
         // Clear selection after move
         state.selectedUnit = null;
         state.validMoves = [];
+        state.attackTargets = [];
         
         render();
     }
+}
+
+// Handle attacking a wall
+function attackWall(x, y) {
+    const cell = state.map[y][x];
+    if (cell.type === 'wall' && cell.hp > 0) {
+        cell.hp -= config.playerAttack;
+        
+        // If wall is destroyed, convert to floor
+        if (cell.hp <= 0) {
+            cell.type = 'floor';
+            delete cell.hp;
+            
+            // Check if any coins were blocked by this wall
+            for (const coin of state.coins) {
+                if (!isCoinReachable(coin.x, coin.y)) {
+                    // Move coin to a reachable position
+                    let newX, newY;
+                    do {
+                        newX = Math.floor(Math.random() * (config.cols - 2)) + 1;
+                        newY = Math.floor(Math.random() * (config.rows - 2)) + 1;
+                    } while (
+                        state.map[newY][newX].type !== 'floor' ||
+                        (newX === state.player.x && newY === state.player.y) ||
+                        state.coins.some(c => c.x === newX && c.y === newY)
+                    );
+                    coin.x = newX;
+                    coin.y = newY;
+                }
+            }
+        }
+        
+        // Clear selection after attack
+        state.selectedUnit = null;
+        state.validMoves = [];
+        state.attackTargets = [];
+        
+        render();
+    }
+}
+
+// Check if a coin is reachable by the player
+function isCoinReachable(coinX, coinY) {
+    const visited = new Set();
+    const queue = [{ x: state.player.x, y: state.player.y }];
+    
+    while (queue.length > 0) {
+        const current = queue.shift();
+        const key = `${current.x},${current.y}`;
+        
+        if (visited.has(key)) continue;
+        visited.add(key);
+        
+        // Found the coin
+        if (current.x === coinX && current.y === coinY) {
+            return true;
+        }
+        
+        // Explore neighbors
+        const directions = [
+            { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+            { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+        ];
+        
+        for (const dir of directions) {
+            const nx = current.x + dir.dx;
+            const ny = current.y + dir.dy;
+            
+            // Check boundaries and walls
+            if (nx >= 0 && nx < config.cols && 
+                ny >= 0 && ny < config.rows && 
+                state.map[ny][nx].type !== 'wall') {
+                queue.push({ x: nx, y: ny });
+            }
+        }
+    }
+    
+    return false;
 }
 
 // Handle canvas click
@@ -317,12 +443,18 @@ function handleCanvasClick(event) {
     // If clicking on player, select it
     if (x === state.player.x && y === state.player.y) {
         state.selectedUnit = { x, y };
-        state.validMoves = calculateValidMoves(x, y, config.moveRange);
+        const options = calculateMovementOptions(x, y, config.moveRange);
+        state.validMoves = options.moves;
+        state.attackTargets = options.attacks;
         render();
     } 
     // If a unit is selected and clicking on a valid move, move there
-    else if (state.selectedUnit) {
+    else if (state.selectedUnit && state.validMoves.some(move => move.x === x && move.y === y)) {
         movePlayer(x, y);
+    }
+    // If a unit is selected and clicking on an attack target, attack it
+    else if (state.selectedUnit && state.attackTargets.some(target => target.x === x && target.y === y)) {
+        attackWall(x, y);
     }
 }
 
@@ -335,6 +467,7 @@ function startGame() {
     state.player = { x: 1, y: 1 };
     state.selectedUnit = null;
     state.validMoves = [];
+    state.attackTargets = [];
     ui.clearUI();
     render();
     ui.renderEndButton(endGame);
