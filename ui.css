@@ -115,6 +115,7 @@
     backface-visibility: hidden;
     perspective: 1000px;
     transform: translateZ(0);
+    width: 1600px;
 
  will-change: transform;
 }
