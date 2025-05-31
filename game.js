@@ -7,6 +7,7 @@ const config = {
     rows: 15,
     maxCoins: 3,
     gameState: 'startScreen',
+    moveRange: 3,
     // Image paths
     playerImage: 'https://raw.githubusercontent.com/YuushaExa/g/refs/heads/main/assets/map/assets_task_01jwk8dx5eenf95wcbx76bcrdc_1748698089_img_0.webp',
     floorImage: 'https://raw.githubusercontent.com/YuushaExa/g/refs/heads/main/assets/map/20250531_1625_Retro%20Grass%20Texture_simple_compose_01jwk89w4tfkrrdfke0frvddyr.png',
@@ -27,7 +28,9 @@ const state = {
     player: { x: 1, y: 1 },
     map: [],
     coins: [],
-    collectedCoins: 0
+    collectedCoins: 0,
+    selectedUnit: null,
+    validMoves: []
 };
 
 // Initialize canvas
@@ -111,6 +114,51 @@ function generateCoins() {
     return coins;
 }
 
+// Calculate valid moves within range
+function calculateValidMoves(x, y, range) {
+    const moves = [];
+    const visited = new Set();
+    const queue = [{ x, y, distance: 0 }];
+    
+    while (queue.length > 0) {
+        const current = queue.shift();
+        const key = `${current.x},${current.y}`;
+        
+        if (visited.has(key)) continue;
+        visited.add(key);
+        
+        if (current.distance > 0 && current.distance <= range) {
+            // Only add if it's a floor tile and not occupied by the player
+            if (state.map[current.y][current.x] === 'floor' && 
+                !(current.x === state.player.x && current.y === state.player.y)) {
+                moves.push({ x: current.x, y: current.y });
+            }
+        }
+        
+        if (current.distance < range) {
+            // Check all four directions
+            const directions = [
+                { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+                { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+            ];
+            
+            for (const dir of directions) {
+                const nx = current.x + dir.dx;
+                const ny = current.y + dir.dy;
+                
+                // Check boundaries and walls
+                if (nx >= 0 && nx < config.cols && 
+                    ny >= 0 && ny < config.rows && 
+                    state.map[ny][nx] !== 'wall') {
+                    queue.push({ x: nx, y: ny, distance: current.distance + 1 });
+                }
+            }
+        }
+    }
+    
+    return moves;
+}
+
 // Draw the game
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -149,6 +197,17 @@ function render() {
                     config.cellSize,
                     config.cellSize
                 );
+                
+                // Highlight valid moves
+                if (state.validMoves.some(move => move.x === x && move.y === y)) {
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                    ctx.fillRect(
+                        x * config.cellSize,
+                        y * config.cellSize,
+                        config.cellSize,
+                        config.cellSize
+                    );
+                }
             }
         }
         
@@ -198,19 +257,27 @@ function render() {
                 config.cellSize
             );
         }
+        
+        // Draw selection border
+        if (state.selectedUnit) {
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(
+                state.selectedUnit.x * config.cellSize,
+                state.selectedUnit.y * config.cellSize,
+                config.cellSize,
+                config.cellSize
+            );
+        }
     }
 }
 
-// Handle player movement and coin collection
-function movePlayer(dx, dy) {
-    const newX = state.player.x + dx;
-    const newY = state.player.y + dy;
+// Handle player movement
+function movePlayer(newX, newY) {
+    // Check if the move is valid
+    const isValidMove = state.validMoves.some(move => move.x === newX && move.y === newY);
     
-    // Check boundaries and walls
-    if (newX >= 0 && newX < config.cols && 
-        newY >= 0 && newY < config.rows && 
-        state.map[newY][newX] !== 'wall') {
-        
+    if (isValidMove) {
         // Check for coin collection
         const coinIndex = state.coins.findIndex(c => c.x === newX && c.y === newY);
         if (coinIndex !== -1) {
@@ -224,9 +291,38 @@ function movePlayer(dx, dy) {
             }
         }
         
+        // Move the player
         state.player.x = newX;
         state.player.y = newY;
+        
+        // Clear selection after move
+        state.selectedUnit = null;
+        state.validMoves = [];
+        
         render();
+    }
+}
+
+// Handle canvas click
+function handleCanvasClick(event) {
+    if (config.gameState !== 'playing') return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / config.cellSize);
+    const y = Math.floor((event.clientY - rect.top) / config.cellSize);
+    
+    // Check if click is within bounds
+    if (x < 0 || x >= config.cols || y < 0 || y >= config.rows) return;
+    
+    // If clicking on player, select it
+    if (x === state.player.x && y === state.player.y) {
+        state.selectedUnit = { x, y };
+        state.validMoves = calculateValidMoves(x, y, config.moveRange);
+        render();
+    } 
+    // If a unit is selected and clicking on a valid move, move there
+    else if (state.selectedUnit) {
+        movePlayer(x, y);
     }
 }
 
@@ -237,6 +333,8 @@ function startGame() {
     state.coins = generateCoins();
     state.collectedCoins = 0;
     state.player = { x: 1, y: 1 };
+    state.selectedUnit = null;
+    state.validMoves = [];
     ui.clearUI();
     render();
     ui.renderEndButton(endGame);
@@ -254,36 +352,15 @@ function restartGame() {
     startGame();
 }
 
-// Keyboard controls
-document.addEventListener('keydown', (e) => {
-    if (config.gameState === 'playing') {
-        switch (e.key.toLowerCase()) {
-            case 'w':
-            case 'arrowup':
-                movePlayer(0, -1);
-                break;
-            case 'a':
-            case 'arrowleft':
-                movePlayer(-1, 0);
-                break;
-            case 's':
-            case 'arrowdown':
-                movePlayer(0, 1);
-                break;
-            case 'd':
-            case 'arrowright':
-                movePlayer(1, 0);
-                break;
-        }
-    }
-});
-
 // Initialize game
 function init() {
     loadAssets(() => {
         ui.renderStartScreen(startGame);
         render();
     });
+    
+    // Add click event listener
+    canvas.addEventListener('click', handleCanvasClick);
 }
 
 init();
