@@ -1,5 +1,5 @@
 function screenres() {
-const mainDiv = document.querySelector('.canvas-container');
+    const mainDiv = document.getElementById('main');
     const bodyDiv = document.body;
     const ASPECT_RATIO = 16 / 9; // 16:9 aspect ratio constant
 
@@ -44,3 +44,5 @@ const mainDiv = document.querySelector('.canvas-container');
     updateScale();
     window.addEventListener('resize', updateScale);
 }
+
+screenres();
