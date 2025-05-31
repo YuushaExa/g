@@ -98,7 +98,7 @@
     background-repeat: no-repeat;
                                                                                                                position:fixed;
 }
-#main {
+.canvas-container {
     position: absolute;
                 background-size: cover;
     background-position: center center;
